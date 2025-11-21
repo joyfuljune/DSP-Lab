@@ -286,14 +286,32 @@ end
 
         function copyCode(event, id) {
             event.stopPropagation();
+            
+            // 1. 获取原始代码块
+            const originalBlock = document.getElementById(id);
+            
+            // 2. 克隆节点，以免修改影响页面上的显示
+            const clone = originalBlock.cloneNode(true);
+            
+            // 3. 找到所有的 TODO 标签
+            const todos = clone.querySelectorAll('.todo');
+            
+            // 4. 修改 TODO 的内容，在前面添加 '%'，使其成为 MATLAB 注释
+            // 这样复制出来就是 "% TODO % 注释内容"，在 MATLAB 中是合法的
+            todos.forEach(todo => {
+                todo.innerText = '% ' + todo.innerText;
+            });
+
+            // 5. 创建临时 textarea 进行复制
             const el = document.createElement('textarea');
-            const code = document.getElementById(id).innerText;
-            el.value = code.replace(/<span[^>]*>/g, '').replace(/<\/span>/g, '');
+            el.value = clone.innerText; // innerText 会保留换行符并去除 HTML 标签
+            
             document.body.appendChild(el);
             el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
             
+            // 6. 按钮反馈效果
             const btn = event.target;
             const origText = btn.textContent;
             btn.textContent = '✓ 已复制';

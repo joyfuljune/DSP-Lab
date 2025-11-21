@@ -1,2 +1,2 @@
 # DSP-Lab
-lab &amp; projects for Digital Signal Processing Courses |  NJPJI
+Lab &amp; Projects for the Digital Signal Processing Course |  NJPJI

@@ -4,8 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DSP-Lab1-练习</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- 
+    ==================================================================
+    == MathJax 优化部分 开始
+    ==================================================================
+    -->
+
+    <!-- 方案2: 配置脚本前置 (关键修复) -->
+    <!-- 必须在加载 MathJax.js 主文件之前定义配置 -->
     <script type="text/x-mathjax-config">
         MathJax.Hub.Config({
             tex2jax: {
@@ -15,6 +22,58 @@
             }
         });
     </script>
+
+    <!-- 方案3 & 4 的辅助样式: 为加载状态提示和 Noscript 准备 -->
+    <style>
+        .mathjax-status {
+            position: fixed;
+            top: 10px;
+            right: 15px;
+            padding: 8px 15px;
+            border-radius: 5px;
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            font-size: 14px;
+            z-index: 10000;
+            font-family: 'Microsoft YaHei', sans-serif;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .mathjax-status.loading {
+            background-color: #fff3cd;
+            color: #856404;
+            border-color: #ffeeba;
+        }
+        .mathjax-status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+            transition: opacity 0.5s ease-out 1.5s;
+            opacity: 0;
+        }
+    </style>
+    
+    <!-- 方案6: 为不支持JavaScript的环境提供降级显示 -->
+    <noscript>
+        <style>
+            .question-box p, .option, .feedback {
+                font-family: monospace;
+                background: #f0f0f0;
+                color: #333;
+                border: 1px dashed #ccc;
+            }
+        </style>
+    </noscript>
+
+    <!-- 仅加载 html2canvas, MathJax 将通过下面的健壮加载器加载 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- 
+    ==================================================================
+    == MathJax 优化部分 结束
+    ==================================================================
+    -->
+
     <style>
         * {
             margin: 0;
@@ -275,6 +334,9 @@
     </style>
 </head>
 <body>
+    <!-- 方案3: 状态提示DOM元素 -->
+    <div id="mathjaxStatus" class="mathjax-status loading">正在加载数学公式...</div>
+    
     <div class="container">
         <!-- 登录界面 -->
         <div class="login-section active">
@@ -327,6 +389,7 @@
     </div>
 
     <script>
+        // ... (所有测验逻辑代码保持不变) ...
         // ==================== 数据结构 ====================
         let studentData = {
             id: '',
@@ -1378,6 +1441,44 @@
                 button.textContent = '截图保存';
             });
         }
+    </script>
+    
+    <!-- 
+    ==================================================================
+    == MathJax 优化部分 (加载器脚本)
+    ==================================================================
+    -->
+    <script>
+        (function() {
+            const statusDiv = document.getElementById('mathjaxStatus');
+            const primaryCDN = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML';
+            const backupCDN = 'https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML';
+
+            function loadScript(src, onload, onerror) {
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = true;
+                script.onload = onload;
+                script.onerror = onerror;
+                document.head.appendChild(script);
+            }
+
+            function onMathJaxLoad() {
+                console.log('MathJax loaded successfully.');
+                statusDiv.textContent = '✓ 数学公式加载成功';
+                statusDiv.className = 'mathjax-status success';
+            }
+
+            loadScript(primaryCDN, onMathJaxLoad, function() {
+                console.warn('Primary MathJax CDN failed. Trying backup...');
+                statusDiv.textContent = '主CDN加载失败,尝试备用...';
+                loadScript(backupCDN, onMathJaxLoad, function() {
+                    console.error('Backup MathJax CDN also failed.');
+                    statusDiv.textContent = '❌ 公式加载失败,请检查网络';
+                    statusDiv.className = 'mathjax-status'; // 移除 loading/success
+                });
+            });
+        })();
     </script>
 </body>
 </html>
